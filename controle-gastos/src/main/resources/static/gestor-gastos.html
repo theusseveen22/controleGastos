@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicativo gestor de gastos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0F1913;
+    --bg-panel: #16241C;
+    --line: #24382C;
+    --ink: #EAF2EC;
+    --ink-dim: #9DB3A5;
+    --accent: #4ADE80;
+    --accent-dim: #1F4A32;
+    --saida: #F0885A;
+    --saida-dim: #4A2A1B;
+    --entrada: #4ADE80;
+    --error: #F0885A;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(74,222,128,0.07), transparent 45%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 16px;
+  }
+
+  .card{
+    width:100%;
+    max-width: 460px;
+  }
+
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background: var(--accent);
+    border-radius:50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: clamp(26px, 5vw, 32px);
+    line-height:1.15;
+    margin: 0 0 28px 0;
+    letter-spacing: -0.01em;
+  }
+
+  form{
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  label{
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    letter-spacing: 0.01em;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  select{
+    background: #0F1913;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+    width: 100%;
+  }
+
+  input::placeholder{ color: #5B6E62; }
+
+  input:focus, select:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(74,222,128,0.14);
+  }
+
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%239DB3A5' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    cursor: pointer;
+  }
+
+  /* Toggle Entrada / Saída */
+  .toggle{
+    display:flex;
+    background:#0F1913;
+    border:1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 4px;
+    gap: 4px;
+  }
+  .toggle input{ display:none; }
+  .toggle label{
+    flex:1;
+    text-align:center;
+    padding: 10px 0;
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all .15s ease;
+    letter-spacing: 0.02em;
+  }
+  .toggle input:checked + label{
+    color: #0F1913;
+  }
+  .toggle input#entrada:checked + label{
+    background: var(--entrada);
+    box-shadow: 0 0 14px rgba(74,222,128,0.35);
+  }
+  .toggle input#saida:checked + label{
+    background: var(--saida);
+    box-shadow: 0 0 14px rgba(240,136,90,0.30);
+  }
+
+  .row2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .valor-wrap{
+    position:relative;
+  }
+  .valor-wrap span{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform: translateY(-50%);
+    color: var(--ink-dim);
+    font-size:15px;
+    pointer-events:none;
+  }
+  .valor-wrap input{
+    padding-left: 32px;
+  }
+
+  button{
+    margin-top: 6px;
+    background: var(--accent);
+    color: #0F1913;
+    border: none;
+    border-radius: var(--radius);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .15s ease, background .15s ease;
+    letter-spacing: 0.01em;
+  }
+  button:hover{
+    box-shadow: 0 0 22px rgba(74,222,128,0.35);
+  }
+  button:active{
+    transform: scale(0.985);
+  }
+  button:disabled{
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .status{
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: center;
+    min-height: 18px;
+    margin-top: -6px;
+  }
+  .status.ok{ color: var(--accent); }
+  .status.err{ color: var(--error); }
+
+  .field-error{
+    font-size: 12px;
+    color: var(--error);
+    min-height: 14px;
+  }
+
+  input.invalid, select.invalid{
+    border-color: var(--error) !important;
+  }
+
+  @media (max-width: 420px){
+    .row2{ grid-template-columns: 1fr; }
+  }
+
+  /* Navegação */
+  .nav{
+    display:flex;
+    gap:4px;
+    background: var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius: 10px;
+    padding:4px;
+    margin-bottom:22px;
+  }
+  .nav a{
+    flex:1;
+    text-align:center;
+    text-decoration:none;
+    padding:9px 4px;
+    border-radius:7px;
+    font-size:11.5px;
+    font-weight:600;
+    color: var(--ink-dim);
+    transition: all .15s ease;
+    letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  .nav a.active{
+    background: var(--accent);
+    color:#0F1913;
+  }
+  .nav a:not(.active):hover{
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <nav class="nav">
+    <a href="gestor-gastos.html" class="active">Novo</a>
+    <a href="listar-lancamentos.html">Listagem</a>
+    <a href="gestao.html">Gestão</a>
+    <a href="limpar-mes.html">Limpar mês</a>
+  </nav>
+
+  <p class="eyebrow">Novo lançamento</p>
+  <h1>Aplicativo gestor de gastos</h1>
+
+  <form id="form-lancamento" novalidate>
+
+    <div class="field">
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" name="nome" placeholder="Ex: Mercado, salário, aluguel..." autocomplete="off">
+      <span class="field-error" id="err-nome"></span>
+    </div>
+
+    <div class="field">
+      <label>Entrada ou saída</label>
+      <div class="toggle">
+        <input type="radio" name="entradaOuSaida" id="entrada" value="ENTRADA" checked>
+        <label for="entrada">Entrada</label>
+        <input type="radio" name="entradaOuSaida" id="saida" value="SAIDA">
+        <label for="saida">Saída</label>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="tipo">Tipo</label>
+        <select id="tipo" name="tipo">
+          <option value="FIXA">Fixa</option>
+          <option value="ESPORADICA">Variável</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="data">Data</label>
+        <input type="date" id="data" name="data">
+        <span class="field-error" id="err-data"></span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="valor">Valor</label>
+      <div class="valor-wrap">
+        <span>R$</span>
+        <input type="number" id="valor" name="valor" placeholder="0,00" step="0.01" min="0">
+      </div>
+      <span class="field-error" id="err-valor"></span>
+    </div>
+
+    <button type="submit" id="btn-enviar">Salvar lançamento</button>
+    <p class="status" id="status"></p>
+  </form>
+</div>
+
+<script>
+  const API_URL = "http://localhost:8080/api/lancamentos";
+
+  const form = document.getElementById('form-lancamento');
+  const btn = document.getElementById('btn-enviar');
+  const statusEl = document.getElementById('status');
+
+  const nomeInput = document.getElementById('nome');
+  const dataInput = document.getElementById('data');
+  const valorInput = document.getElementById('valor');
+
+  // data padrão = hoje
+  dataInput.valueAsDate = new Date();
+
+  function clearErrors(){
+    document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+    document.querySelectorAll('.invalid').forEach(el => el.classList.remove('invalid'));
+  }
+
+  function setError(inputEl, errEl, msg){
+    inputEl.classList.add('invalid');
+    errEl.textContent = msg;
+  }
+
+  function validar(){
+    clearErrors();
+    let ok = true;
+
+    if(!nomeInput.value.trim()){
+      setError(nomeInput, document.getElementById('err-nome'), 'Informe um nome.');
+      ok = false;
+    }
+
+    if(!dataInput.value){
+      setError(dataInput, document.getElementById('err-data'), 'Informe a data.');
+      ok = false;
+    }
+
+    const valorNum = parseFloat(valorInput.value);
+    if(isNaN(valorNum) || valorNum <= 0){
+      setError(valorInput, document.getElementById('err-valor'), 'Informe um valor válido.');
+      ok = false;
+    }
+
+    return ok;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+
+    if(!validar()) return;
+
+    const payload = {
+      nome: nomeInput.value.trim(),
+      tipo: document.getElementById('tipo').value,
+      entradaOuSaida: document.querySelector('input[name="entradaOuSaida"]:checked').value,
+      data: dataInput.value,
+      valor: parseFloat(valorInput.value)
+    };
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    try{
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if(!resp.ok){
+        throw new Error('Erro ' + resp.status);
+      }
+
+      statusEl.textContent = 'Lançamento salvo com sucesso.';
+      statusEl.classList.add('ok');
+      form.reset();
+      dataInput.valueAsDate = new Date();
+
+    }catch(err){
+      statusEl.textContent = 'Falha ao enviar: ' + err.message;
+      statusEl.classList.add('err');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = 'Salvar lançamento';
+    }
+  });
+</script>
+
+</body>
+</html>

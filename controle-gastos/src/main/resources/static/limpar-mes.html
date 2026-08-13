@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicativo gestor de gastos — Limpar mês</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0F1913;
+    --bg-panel: #16241C;
+    --bg-panel-2: #1B2B21;
+    --line: #24382C;
+    --ink: #EAF2EC;
+    --ink-dim: #9DB3A5;
+    --accent: #4ADE80;
+    --saida: #F0885A;
+    --saida-dim: #4A2A1B;
+    --error: #F0885A;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(240,136,90,0.06), transparent 45%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 32px 16px;
+  }
+
+  .wrap{
+    width:100%;
+    max-width: 420px;
+  }
+
+  .nav{
+    display:flex;
+    gap:4px;
+    background: var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius: 10px;
+    padding:4px;
+    margin-bottom:22px;
+  }
+  .nav a{
+    flex:1;
+    text-align:center;
+    text-decoration:none;
+    padding:9px 4px;
+    border-radius:7px;
+    font-size:11.5px;
+    font-weight:600;
+    color: var(--ink-dim);
+    transition: all .15s ease;
+    letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  .nav a.active{
+    background: var(--accent);
+    color:#0F1913;
+  }
+  .nav a:not(.active):hover{
+    color: var(--ink);
+  }
+
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--saida);
+    margin: 0 0 8px 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background: var(--saida);
+    border-radius:50%;
+    box-shadow: 0 0 8px var(--saida);
+  }
+
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: clamp(24px, 5vw, 30px);
+    line-height:1.15;
+    margin: 0 0 24px 0;
+    letter-spacing: -0.01em;
+  }
+
+  .panel{
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align:center;
+  }
+
+  .panel p{
+    color: var(--ink-dim);
+    font-size: 14px;
+    line-height:1.55;
+    margin: 0 0 22px 0;
+  }
+  .panel p strong{
+    color: var(--ink);
+  }
+
+  .btn-limpar{
+    width:100%;
+    background: transparent;
+    border: 1.5px solid var(--saida-dim);
+    color: var(--saida);
+    border-radius: var(--radius);
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: 15px;
+    padding: 15px 0;
+    cursor:pointer;
+    transition: all .15s ease;
+    letter-spacing:0.01em;
+  }
+  .btn-limpar:hover{
+    background: var(--saida-dim);
+    box-shadow: 0 0 20px rgba(240,136,90,0.2);
+  }
+  .btn-limpar:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+
+  /* Estado de confirmação */
+  .confirm{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+    margin-top: 14px;
+  }
+  .confirm.open{ display:flex; }
+  .confirm-row{
+    display:flex;
+    gap:8px;
+  }
+  .btn-confirmar, .btn-cancelar{
+    flex:1;
+    border-radius: var(--radius);
+    padding: 13px 0;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 13.5px;
+    cursor:pointer;
+    border:none;
+    transition: all .15s ease;
+  }
+  .btn-confirmar{
+    background: var(--saida);
+    color: #1A0E08;
+  }
+  .btn-confirmar:hover{ box-shadow: 0 0 16px rgba(240,136,90,0.35); }
+  .btn-cancelar{
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+  }
+  .btn-cancelar:hover{ color: var(--ink); }
+
+  .status{
+    font-size: 13.5px;
+    font-weight: 500;
+    text-align: center;
+    min-height: 18px;
+    margin-top: 16px;
+  }
+  .status.ok{ color: var(--accent); }
+  .status.err{ color: var(--error); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="gestor-gastos.html">Novo</a>
+    <a href="listar-lancamentos.html">Listagem</a>
+    <a href="gestao.html">Gestão</a>
+    <a href="limpar-mes.html" class="active">Limpar mês</a>
+  </nav>
+
+  <p class="eyebrow">Zona de risco</p>
+  <h1>Aplicativo gestor de gastos</h1>
+
+  <div class="panel">
+    <p>Isso vai <strong>apagar todos os lançamentos</strong> cadastrados, sem volta. Use no início de um novo mês.</p>
+
+    <button class="btn-limpar" id="btn-limpar">Limpar mês</button>
+
+    <div class="confirm" id="confirm">
+      <p style="margin:2px 0 0 0; color: var(--saida); font-weight:600;">Tem certeza? Essa ação não pode ser desfeita.</p>
+      <div class="confirm-row">
+        <button class="btn-confirmar" id="btn-confirmar">Sim, limpar tudo</button>
+        <button class="btn-cancelar" id="btn-cancelar">Cancelar</button>
+      </div>
+    </div>
+
+    <p class="status" id="status"></p>
+  </div>
+</div>
+
+<script>
+  const API_URL = "http://localhost:8080/api/delete-all";
+
+  const btnLimpar = document.getElementById('btn-limpar');
+  const confirmBox = document.getElementById('confirm');
+  const btnConfirmar = document.getElementById('btn-confirmar');
+  const btnCancelar = document.getElementById('btn-cancelar');
+  const statusEl = document.getElementById('status');
+
+  btnLimpar.addEventListener('click', () => {
+    confirmBox.classList.add('open');
+    btnLimpar.style.display = 'none';
+  });
+
+  btnCancelar.addEventListener('click', () => {
+    confirmBox.classList.remove('open');
+    btnLimpar.style.display = 'block';
+  });
+
+  btnConfirmar.addEventListener('click', async () => {
+    btnConfirmar.disabled = true;
+    btnCancelar.disabled = true;
+    btnConfirmar.textContent = 'Limpando...';
+    statusEl.textContent = '';
+    statusEl.className = 'status';
+
+    try{
+      const resp = await fetch(API_URL, { method: 'DELETE' });
+      if(!resp.ok) throw new Error('Erro ' + resp.status);
+
+      statusEl.textContent = 'Todos os lançamentos foram apagados.';
+      statusEl.classList.add('ok');
+      confirmBox.classList.remove('open');
+      btnLimpar.style.display = 'block';
+
+    }catch(err){
+      statusEl.textContent = 'Falha ao limpar: ' + err.message;
+      statusEl.classList.add('err');
+    }finally{
+      btnConfirmar.disabled = false;
+      btnCancelar.disabled = false;
+      btnConfirmar.textContent = 'Sim, limpar tudo';
+    }
+  });
+</script>
+
+</body>
+</html>

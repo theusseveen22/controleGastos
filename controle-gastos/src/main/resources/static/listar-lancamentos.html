@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicativo gestor de gastos — Listagem</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0F1913;
+    --bg-panel: #16241C;
+    --bg-panel-2: #1B2B21;
+    --line: #24382C;
+    --ink: #EAF2EC;
+    --ink-dim: #9DB3A5;
+    --accent: #4ADE80;
+    --accent-dim: #1F4A32;
+    --saida: #F0885A;
+    --saida-dim: #4A2A1B;
+    --entrada: #4ADE80;
+    --entrada-dim: #163B27;
+    --error: #F0885A;
+    --radius: 10px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(74,222,128,0.07), transparent 45%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    padding: 32px 16px 60px;
+  }
+
+  .wrap{
+    width:100%;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  /* Navegação */
+  .nav{
+    display:flex;
+    gap:4px;
+    background: var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius: 10px;
+    padding:4px;
+    margin-bottom:22px;
+  }
+  .nav a{
+    flex:1;
+    text-align:center;
+    text-decoration:none;
+    padding:9px 4px;
+    border-radius:7px;
+    font-size:11.5px;
+    font-weight:600;
+    color: var(--ink-dim);
+    transition: all .15s ease;
+    letter-spacing:0.01em;
+    white-space:nowrap;
+  }
+  .nav a.active{
+    background: var(--accent);
+    color:#0F1913;
+  }
+  .nav a:not(.active):hover{
+    color: var(--ink);
+  }
+
+  .eyebrow{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 8px 2px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background: var(--accent);
+    border-radius:50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: clamp(24px, 5vw, 30px);
+    line-height:1.15;
+    margin: 0 0 24px 0;
+    letter-spacing: -0.01em;
+  }
+
+  .summary{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .summary .box{
+    background: var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .summary .box .lbl{
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin-bottom:4px;
+  }
+  .summary .box .val{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 19px;
+    font-weight:700;
+  }
+  .summary .box.entrada .val{ color: var(--entrada); }
+  .summary .box.saida .val{ color: var(--saida); }
+
+  .lista{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+
+  .item{
+    background: var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap: 12px;
+    transition: opacity .2s ease, transform .2s ease;
+  }
+  .item.removing{
+    opacity:0;
+    transform: scale(0.97);
+  }
+
+  .item-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap: 10px;
+  }
+
+  .item-nome{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size: 16px;
+    text-transform: capitalize;
+  }
+
+  .item-data{
+    font-size:12.5px;
+    color: var(--ink-dim);
+    margin-top:2px;
+  }
+
+  .item-valor{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size: 18px;
+    white-space:nowrap;
+  }
+  .item-valor.entrada{ color: var(--entrada); }
+  .item-valor.saida{ color: var(--saida); }
+
+  .badges{
+    display:flex;
+    gap:6px;
+  }
+
+  .badge{
+    font-size: 11px;
+    font-weight:700;
+    letter-spacing:0.04em;
+    padding: 4px 9px;
+    border-radius: 999px;
+    text-transform:uppercase;
+  }
+  .badge.tipo{
+    background: #20302A;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+  }
+  .badge.entrada{
+    background: var(--entrada-dim);
+    color: var(--entrada);
+  }
+  .badge.saida{
+    background: var(--saida-dim);
+    color: var(--saida);
+  }
+
+  .item-actions{
+    display:flex;
+    gap:8px;
+  }
+
+  .btn{
+    flex:1;
+    border:none;
+    border-radius: 8px;
+    padding: 9px 0;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size: 13px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .btn-edit{
+    background: #1D2E24;
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  .btn-edit:hover{
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .btn-delete{
+    background: transparent;
+    color: var(--saida);
+    border: 1px solid var(--saida-dim);
+  }
+  .btn-delete:hover{
+    background: var(--saida-dim);
+  }
+  .btn:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+
+  /* Formulário de edição inline */
+  .edit-form{
+    display:none;
+    flex-direction:column;
+    gap: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    margin-top: 2px;
+  }
+  .edit-form.open{ display:flex; }
+
+  .edit-row{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:8px;
+  }
+
+  .edit-form label{
+    font-size:11px;
+    font-weight:600;
+    color: var(--ink-dim);
+    display:block;
+    margin-bottom:4px;
+  }
+
+  .edit-form input[type="text"],
+  .edit-form input[type="date"],
+  .edit-form input[type="number"],
+  .edit-form select{
+    width:100%;
+    background:#0F1913;
+    border:1px solid var(--line);
+    border-radius: 8px;
+    color: var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size: 13.5px;
+    padding: 9px 11px;
+    outline:none;
+  }
+  .edit-form input:focus, .edit-form select:focus{
+    border-color: var(--accent);
+  }
+  .edit-form select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%239DB3A5' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position: right 10px center;
+  }
+
+  .edit-toggle{
+    display:flex;
+    background:#0F1913;
+    border:1px solid var(--line);
+    border-radius: 8px;
+    padding:3px;
+    gap:3px;
+  }
+  .edit-toggle input{ display:none; }
+  .edit-toggle label{
+    flex:1;
+    text-align:center;
+    padding: 7px 0;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:600;
+    color: var(--ink-dim);
+    cursor:pointer;
+    margin-bottom:0;
+  }
+  .edit-toggle input:checked + label{ color:#0F1913; }
+  .edit-toggle input.ent:checked + label{ background: var(--entrada); }
+  .edit-toggle input.sai:checked + label{ background: var(--saida); }
+
+  .edit-actions{
+    display:flex;
+    gap:8px;
+    margin-top:2px;
+  }
+  .btn-save{
+    background: var(--accent);
+    color:#0F1913;
+    border:none;
+  }
+  .btn-save:hover{ box-shadow: 0 0 14px rgba(74,222,128,0.3); }
+  .btn-cancel{
+    background: transparent;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+  }
+  .btn-cancel:hover{ color: var(--ink); }
+
+  .empty, .loading, .error-msg{
+    text-align:center;
+    color: var(--ink-dim);
+    font-size:14px;
+    padding: 40px 0;
+  }
+  .error-msg{ color: var(--error); }
+
+  .toast{
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight:500;
+    opacity:0;
+    pointer-events:none;
+    transition: all .25s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .toast.show{
+    opacity:1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .toast.err{ border-color: var(--saida-dim); color: var(--saida); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav class="nav">
+    <a href="gestor-gastos.html">Novo</a>
+    <a href="listar-lancamentos.html" class="active">Listagem</a>
+    <a href="gestao.html">Gestão</a>
+    <a href="limpar-mes.html">Limpar mês</a>
+  </nav>
+
+  <p class="eyebrow">Seus lançamentos</p>
+  <h1>Aplicativo gestor de gastos</h1>
+
+  <div class="summary">
+    <div class="box entrada">
+      <div class="lbl">Entradas</div>
+      <div class="val" id="total-entradas">R$ 0,00</div>
+    </div>
+    <div class="box saida">
+      <div class="lbl">Saídas</div>
+      <div class="val" id="total-saidas">R$ 0,00</div>
+    </div>
+  </div>
+
+  <div class="lista" id="lista">
+    <p class="loading">Carregando lançamentos...</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const BASE_URL = "http://localhost:8080/api";
+  const listaEl = document.getElementById('lista');
+  const toastEl = document.getElementById('toast');
+
+  let itens = [];
+
+  function formatarMoeda(v){
+    return v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+  }
+
+  function formatarData(iso){
+    const [ano, mes, dia] = iso.split('-');
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function mostrarToast(msg, isErro){
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (isErro ? ' err' : '');
+    setTimeout(() => toastEl.classList.remove('show'), 2600);
+  }
+
+  function atualizarResumo(){
+    const entradas = itens
+      .filter(i => i.entradaOuSaida === 'ENTRADA')
+      .reduce((s, i) => s + Number(i.valor), 0);
+    const saidas = itens
+      .filter(i => i.entradaOuSaida === 'SAIDA')
+      .reduce((s, i) => s + Number(i.valor), 0);
+
+    document.getElementById('total-entradas').textContent = formatarMoeda(entradas);
+    document.getElementById('total-saidas').textContent = formatarMoeda(saidas);
+  }
+
+  function criarCard(item){
+    const isEntrada = item.entradaOuSaida === 'ENTRADA';
+
+    const card = document.createElement('div');
+    card.className = 'item';
+    card.dataset.id = item.id;
+
+    card.innerHTML = `
+      <div class="item-top">
+        <div>
+          <div class="item-nome">${item.nome}</div>
+          <div class="item-data">${formatarData(item.data)}</div>
+        </div>
+        <div class="item-valor ${isEntrada ? 'entrada' : 'saida'}">
+          ${isEntrada ? '+' : '−'} ${formatarMoeda(Number(item.valor))}
+        </div>
+      </div>
+
+      <div class="badges">
+        <span class="badge tipo">${item.tipo === 'FIXA' ? 'Fixa' : 'Variável'}</span>
+        <span class="badge ${isEntrada ? 'entrada' : 'saida'}">${isEntrada ? 'Entrada' : 'Saída'}</span>
+      </div>
+
+      <div class="item-actions">
+        <button class="btn btn-edit" data-action="toggle-edit">Editar</button>
+        <button class="btn btn-delete" data-action="delete">Excluir</button>
+      </div>
+
+      <form class="edit-form" novalidate>
+        <div>
+          <label>Nome</label>
+          <input type="text" name="nome" value="${item.nome}">
+        </div>
+
+        <div class="edit-toggle">
+          <input type="radio" class="ent" name="entradaOuSaida" value="ENTRADA" id="ent-${item.id}" ${isEntrada ? 'checked' : ''}>
+          <label for="ent-${item.id}">Entrada</label>
+          <input type="radio" class="sai" name="entradaOuSaida" value="SAIDA" id="sai-${item.id}" ${!isEntrada ? 'checked' : ''}>
+          <label for="sai-${item.id}">Saída</label>
+        </div>
+
+        <div class="edit-row">
+          <div>
+            <label>Tipo</label>
+            <select name="tipo">
+              <option value="FIXA" ${item.tipo === 'FIXA' ? 'selected' : ''}>Fixa</option>
+              <option value="VARIAVEL" ${item.tipo === 'VARIAVEL' ? 'selected' : ''}>Variável</option>
+            </select>
+          </div>
+          <div>
+            <label>Data</label>
+            <input type="date" name="data" value="${item.data}">
+          </div>
+        </div>
+
+        <div>
+          <label>Valor</label>
+          <input type="number" name="valor" step="0.01" min="0" value="${Number(item.valor).toFixed(2)}">
+        </div>
+
+        <div class="edit-actions">
+          <button type="submit" class="btn btn-save">Salvar alterações</button>
+          <button type="button" class="btn btn-cancel" data-action="cancel-edit">Cancelar</button>
+        </div>
+      </form>
+    `;
+
+    const editForm = card.querySelector('.edit-form');
+
+    card.querySelector('[data-action="toggle-edit"]').addEventListener('click', () => {
+      editForm.classList.toggle('open');
+    });
+
+    card.querySelector('[data-action="cancel-edit"]').addEventListener('click', () => {
+      editForm.classList.remove('open');
+    });
+
+    card.querySelector('[data-action="delete"]').addEventListener('click', () => {
+      excluirItem(item.id, card);
+    });
+
+    editForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      salvarEdicao(item.id, card, editForm);
+    });
+
+    return card;
+  }
+
+  function renderLista(){
+    listaEl.innerHTML = '';
+
+    if(itens.length === 0){
+      listaEl.innerHTML = '<p class="empty">Nenhum lançamento encontrado.</p>';
+      atualizarResumo();
+      return;
+    }
+
+    itens.forEach(item => listaEl.appendChild(criarCard(item)));
+    atualizarResumo();
+  }
+
+  async function carregarLista(){
+    listaEl.innerHTML = '<p class="loading">Carregando lançamentos...</p>';
+    try{
+      const resp = await fetch(`${BASE_URL}/listar`);
+      if(!resp.ok) throw new Error('Erro ' + resp.status);
+      itens = await resp.json();
+      renderLista();
+    }catch(err){
+      listaEl.innerHTML = `<p class="error-msg">Falha ao carregar: ${err.message}</p>`;
+    }
+  }
+
+  async function excluirItem(id, card){
+    const btn = card.querySelector('[data-action="delete"]');
+    btn.disabled = true;
+    btn.textContent = 'Excluindo...';
+
+    try{
+      const resp = await fetch(`${BASE_URL}/delete/${id}`, { method: 'DELETE' });
+      if(!resp.ok) throw new Error('Erro ' + resp.status);
+
+      card.classList.add('removing');
+      setTimeout(() => {
+        card.remove();
+        itens = itens.filter(i => i.id !== id);
+        atualizarResumo();
+        if(itens.length === 0){
+          listaEl.innerHTML = '<p class="empty">Nenhum lançamento encontrado.</p>';
+        }
+      }, 200);
+
+      mostrarToast('Lançamento excluído.');
+    }catch(err){
+      btn.disabled = false;
+      btn.textContent = 'Excluir';
+      mostrarToast('Falha ao excluir: ' + err.message, true);
+    }
+  }
+
+  async function salvarEdicao(id, card, form){
+    const fd = new FormData(form);
+    const payload = {
+      nome: fd.get('nome').trim(),
+      tipo: fd.get('tipo'),
+      entradaOuSaida: fd.get('entradaOuSaida'),
+      data: fd.get('data'),
+      valor: parseFloat(fd.get('valor'))
+    };
+
+    if(!payload.nome || !payload.data || isNaN(payload.valor) || payload.valor <= 0){
+      mostrarToast('Preencha os campos corretamente.', true);
+      return;
+    }
+
+    const saveBtn = form.querySelector('.btn-save');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Salvando...';
+
+    try{
+      const resp = await fetch(`${BASE_URL}/atualizar/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if(!resp.ok) throw new Error('Erro ' + resp.status);
+
+      // remove o card antigo e insere a versão atualizada no lugar
+      const atualizado = { id, ...payload };
+      const idx = itens.findIndex(i => i.id === id);
+      itens[idx] = atualizado;
+
+      const novoCard = criarCard(atualizado);
+      card.replaceWith(novoCard);
+      atualizarResumo();
+
+      mostrarToast('Lançamento atualizado.');
+    }catch(err){
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Salvar alterações';
+      mostrarToast('Falha ao salvar: ' + err.message, true);
+    }
+  }
+
+  carregarLista();
+</script>
+
+</body>
+</html>
